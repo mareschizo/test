@@ -1,8 +1,33 @@
 const WebSocket = require('ws');
 const http = require('http');
+const url = require('url');
 
-const server = http.createServer();
-const wss = new WebSocket.Server({ server });
+const server = http.createServer((req, res) => {
+  const parsedUrl = url.parse(req.url);
+
+  // If the path is /ws, do nothing (WebSocket upgrade will handle it)
+  if (parsedUrl.pathname === '/ws') {
+    // Let the WebSocket server handle this
+    return;
+  }
+
+  // Serve a simple HTML page for any other path
+  res.writeHead(200, { 'Content-Type': 'text/html' });
+  res.end(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Simple WebSocket Server</title>
+      </head>
+      <body>
+        <h1>Welcome!</h1>
+        <p>This is a simple HTML page served by the server.</p>
+      </body>
+    </html>
+  `);
+});
+
+const wss = new WebSocket.Server({ server, path: '/ws' });
 
 const rateLimits = {};
 
